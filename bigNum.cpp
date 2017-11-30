@@ -1,5 +1,9 @@
 #include <iostream>
+#include <limits.h>
 using namespace std;
+
+inline int digits(long long);
+inline string intToStr(long long);
 
 class bigNum {
   private:
@@ -7,16 +11,21 @@ class bigNum {
     int _sign;
 
   public:
-    bigNum(int num = 0) {
-      char buff[25];
-      sprintf(buff, "%d", num);
-      if (num >= 0) {
-        this->_number = string(buff);
-        this->_sign = 1;
+    bigNum(long long num = 0L) {
+      if ((num >= LONG_MIN) and (num <= LONG_MAX)) {
+        string sNum = intToStr(num);
+        if (sNum[0] != '-') {
+          this->_number = sNum;
+          this->_sign = 1;
+        }
+        else {
+          this->_number = string(sNum.begin() + 1, sNum.end());
+          this->_sign = -1;
+        }
       }
       else {
-        this->_number = string(&buff[1]);
-        this->_sign = -1; 
+        this->_number = '0';
+        this->_sign = 1;
       }
     }
 
@@ -31,12 +40,34 @@ class bigNum {
       }
     }
 
+    /* Less than and greater than */
+    inline bool operator<(const bigNum &b2) const {
+      int a, b;
+      if (this->_sign != b2._sign) return this->_sign < b2._sign;
+      
+      if (this->_number.size() == b2._number.size()) {
+        for (size_t i = 0; i < this->_number.size(); i++) {
+          a = this->_number[i] - '0';
+          b = b2._number[i] - '0';
+          if (a != b) {
+            if (this->_sign == -1) return a > b;
+            return a < b;
+          }
+        }
+      }
+
+      return (this->_sign == -1) ? this->_number.size() > b2._number.size() : this->_number.size() < b2._number.size();
+    }
+
+    inline bool operator>(const bigNum &rhs) const { return rhs < *this; }
+    inline bool operator<=(const bigNum &rhs) const { return !(*this > rhs); }
+    inline bool operator>=(const bigNum &rhs) const { return !(*this < rhs); }
+
+    /* */
     int toInt() const {
       int result = 0;
-      const bigNum minI = bigNum("-32767");
-      const bigNum maxI = bigNum("32767");
       int mult = 1;
-      if ((*this > minI) and (*this < maxI)) {
+      if ((*this >= INT_MIN) and (*this <= INT_MAX)) {
         for (int i = this->_number.size() - 1; i >= 0; i--) {
           result += (this->_number[i] - '0') * mult;
           mult *= 10;
@@ -47,15 +78,14 @@ class bigNum {
       return result;
     }    
 
+    /* */
     long long toLongLong() const {
-      long long result = 0;
-      const bigNum minLL = bigNum("-9223372036854775807");
-      const bigNum maxLL = bigNum("9223372036854775807");
-      long long mult = 1;
-      if ((*this > minLL) and (*this < maxLL)) {
+      long long result = 0L;
+      long long mult = 1L;
+      if ((*this >= LLONG_MIN) and (*this <= LLONG_MAX)) {
         for (long long i = this->_number.size() - 1; i >= 0; i--) {
           result += (this->_number[i] - '0') * mult;
-          mult *= 10;
+          mult *= 10L;
         }
       }
       else result = -1;
@@ -63,6 +93,7 @@ class bigNum {
       return result;
     }
 
+    /* */
     bigNum fillWithZeros(int c) {
       string newBigNum = this->_number;
       int Zeros = c - this->_number.size();
@@ -84,6 +115,54 @@ class bigNum {
 
       if (this->_sign == -1) newBigNum = '-' + newBigNum;
       return bigNum(newBigNum);
+    }
+
+    bigNum divide(bigNum n) {
+      bigNum Q, R;
+      n += n == 0;
+      
+      if (n < 0) { 
+        Q = this->divide(-n);
+        return -Q;
+      }
+      if (*this < 0) {
+        Q = -this->divide(n);
+        if (R == 0) 
+          return -Q;
+        else 
+          return -Q - 1;
+      }
+      Q = 0; 
+      R = *this;
+      while (R >= n) {
+        Q = Q + 1;
+        R = R - n;
+      }
+      return Q;
+    }
+
+    bigNum modulus(bigNum n) {
+      bigNum Q, R;
+      n += n == 0;
+      
+      if (n < 0) { 
+        R = this->modulus(-n);
+        return -R;
+      }
+      if (*this < 0) {
+        R = -this->modulus(n);
+        if (R == 0) 
+          return 0;
+        else 
+          return n - R;
+      }
+      Q = 0; 
+      R = *this;
+      while (R >= n) {
+        Q = Q + 1;
+        R = R - n;
+      }
+      return R;
     }
 
     bigNum add(bigNum n) {
@@ -204,29 +283,6 @@ class bigNum {
       return num;
     }
 
-    /* Less than and greater than */
-    inline bool operator<(const bigNum &b2) const {
-      int a, b;
-      if (this->_sign != b2._sign) return this->_sign < b2._sign;
-
-      if (this->_number.size() == b2._number.size()) {
-        for (size_t i = 0; i < this->_number.size(); i++) {
-          a = this->_number[i] - '0';
-          b = b2._number[i] - '0';
-          if (a != b) {
-            if (this->_sign == -1) return a > b;
-            return a < b;
-          }
-        }
-      }
-
-      return (this->_sign == -1) ? this->_number.size() > b2._number.size() : this->_number.size() < b2._number.size();
-    }
-
-    inline bool operator>(const bigNum &rhs) const { return rhs < *this; }
-    inline bool operator<=(const bigNum &rhs) const { return !(*this > rhs); }
-    inline bool operator>=(const bigNum &rhs) const { return !(*this < rhs); }
-
     /* Equality and inequality */
     inline bool operator==(const bigNum &b2) const {
       bigNum a = bigNum(*this).removeZeros();
@@ -271,10 +327,78 @@ class bigNum {
       return lhs;
     }
 
+    /* Modulus operator */
+    bigNum &operator%=(const bigNum &n) {
+      *this = this->modulus(n);
+      return *this;
+    }
+
+    friend bigNum operator%(bigNum lhs, const bigNum &rhs) {
+      lhs %= rhs;
+      return lhs;
+    }
+
+    /* Divide operator */
+    bigNum &operator/=(const bigNum &n) {
+      *this = this->divide(n);
+      return *this;
+    }
+
+    friend bigNum operator/(bigNum lhs, const bigNum &rhs) {
+      lhs /= rhs;
+      return lhs;
+    }
+
     /* cout overload */
-    friend ostream &operator<<(ostream& os, const bigNum &num) {
+    friend ostream &operator<<(ostream &os, const bigNum &num) {
       if (num._sign == -1) os << "-";
       os << ((num._number.size() > 0) ? num._number : "0");
       return os;    
     } 
+
+    friend istream &operator>>(istream &is, bigNum &num) {
+      string s;
+      is >> s;
+      num = bigNum(s);
+      return is;
+    }
 };
+
+inline int digits(long long i) {
+  unsigned long long x = abs(i);
+  return (x < 10L ? 1 :
+    (x < 100L ? 2 :
+    (x < 1000L ? 3 :
+    (x < 10000L ? 4 :
+    (x < 100000L ? 5 :
+    (x < 1000000L ? 6 :
+    (x < 10000000L ? 7 :
+    (x < 100000000L ? 8 :
+    (x < 1000000000L ? 9 :
+    (x < 10000000000L ? 10 :
+    (x < 100000000000L ? 11 :
+    (x < 1000000000000L ? 12 :
+    (x < 10000000000000L ? 13 :
+    (x < 100000000000000L ? 14 :
+    (x < 1000000000000000L ? 15 :
+    (x < 10000000000000000L ? 16 :
+    (x < 100000000000000000L ? 17 :
+    (x < 1000000000000000000L ? 18 :
+    19))))))))))))))))));
+}
+
+inline string intToStr(long long x) {
+  string num;
+  int neg = (x < 0);
+  int dig = digits(x);
+  if (neg) dig++;
+  unsigned long long i = abs(x);
+  num = string(dig, '0');
+
+  while (i) {
+    num[--dig] += (i % 10);
+    i /= 10;
+  }
+  if (neg) num[0] = '-';
+  return num;
+}
