@@ -1,5 +1,7 @@
+#include <algorithm>
 #include <iostream>
 #include <limits.h>
+#include <string>
 using namespace std;
 
 inline int digits(long long);
@@ -228,40 +230,50 @@ class bigNum {
       return bigNum(newBigNum).removeZeros();
     }
 
-    bigNum multiply(bigNum n) {
-      char buff[3];
-      string Zeros = "";
-      int numA, numB, ac, m;
-      bigNum a = *this, b = n, newBigNum;
+    bigNum multiply(bigNum bigNumB) {
+        size_t bigNumBSize = bigNumB._number.size();
+        size_t thisSize = this->_number.size();
 
-      if (*this > n) 
-        a = n, b = *this;
-
-      string toAdd[a._number.size()];
-
-      for (int i = a._number.size() - 1; i >= 0; i--) {
-        numA = a._number[i] - '0', ac = 0;
-        for (int j = b._number.size() - 1; j >= 0; j--) {
-          numB = b._number[j] - '0';
-          m = (numA * numB) + ac;
-          sprintf(buff, "%d", m % 10);
-          toAdd[i] = string(buff) + toAdd[i];
-          ac = m / 10;
+        if (thisSize <= 2 and bigNumBSize <= 2) {
+            return bigNum(this->toInt() * bigNumB.toInt());
         }
 
-        if (ac > 0) {
-          sprintf(buff, "%d", ac);
-          toAdd[i] = string(buff) + toAdd[i];
+        // Ceil of max size / 2
+        size_t half = (max(bigNumBSize, thisSize) + 1) >> 1;
+
+        bigNum a, b, c, d;
+        if (thisSize >= half) {
+            a = bigNum(this->_number.substr(0, thisSize - half));
+            b = bigNum(this->_number.substr(thisSize - half));
+        } else {
+            b = bigNum(*this);
         }
-        toAdd[i] += Zeros;
-        Zeros += "0";
-      }
 
-      for (size_t i = 0; i < a._number.size(); i++)
-        newBigNum = newBigNum.add(bigNum(toAdd[i]));
+        if (bigNumBSize >= half) {
+            c = bigNum(bigNumB._number.substr(0, bigNumBSize - half));
+            d = bigNum(bigNumB._number.substr(bigNumBSize - half));
+        } else {
+            d = bigNum(bigNumB);
+        }
 
-      newBigNum._sign = this->_sign * n._sign;
-      return newBigNum;
+        /* cout << "Half: " << half << '\n'; */
+        /* cout << "A: " << a << "\nB: " << b << '\n'; */
+        /* cout << "C: " << c << "\nD: " << d << '\n'; */
+
+        bigNum ac = a * c;
+        bigNum bd = b * d;
+        /* cout << "A + B * C + D - AC - BD: " << (a + b) * (c + d) - ac - bd << '\n'; */
+        bigNum next = ((a + b) * (c + d)) - ac - bd;
+
+        string extraZero(half, '0');
+
+        cout << "AC: " << ac << ' ';
+        cout << "BD: " << bd << ' ';
+        cout << bigNum(next._number + extraZero) << '\n';
+
+        return bigNum(ac._number + extraZero + extraZero) 
+            + bigNum(next._number + extraZero) 
+            + bd;
     }
 
     /* Increment */
