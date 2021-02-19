@@ -256,24 +256,15 @@ class bigNum {
             d = bigNum(bigNumB);
         }
 
-        /* cout << "Half: " << half << '\n'; */
-        /* cout << "A: " << a << "\nB: " << b << '\n'; */
-        /* cout << "C: " << c << "\nD: " << d << '\n'; */
-
-        bigNum ac = a * c;
-        bigNum bd = b * d;
-        /* cout << "A + B * C + D - AC - BD: " << (a + b) * (c + d) - ac - bd << '\n'; */
+        bigNum ac = (a * c);
+        bigNum bd = (b * d);
         bigNum next = ((a + b) * (c + d)) - ac - bd;
 
         string extraZero(half, '0');
 
-        cout << "AC: " << ac << ' ';
-        cout << "BD: " << bd << ' ';
-        cout << bigNum(next._number + extraZero) << '\n';
-
-        return bigNum(ac._number + extraZero + extraZero) 
+        return (bigNum(ac._number + extraZero + extraZero) 
             + bigNum(next._number + extraZero) 
-            + bd;
+            + bd).removeZeros();
     }
 
     /* Increment */
