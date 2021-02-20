@@ -1,5 +1,4 @@
 ---
-title: Matemáticas
 description: >-
   Repo de matemáticas
 ---

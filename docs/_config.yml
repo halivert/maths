@@ -1,9 +1,8 @@
 remote_theme: halivert/halivert.github.io@main
 
+title: "Matemáticas"
+
 defaults:
-  -
-    scope:
-      path: ""
-    values:
+  - values:
       layout: "repo"
       has_instant_view: true
