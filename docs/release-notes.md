@@ -1,4 +1,6 @@
-# Release notes
+---
+title: Release notes
+---
 
 ## Version 0.1
 
