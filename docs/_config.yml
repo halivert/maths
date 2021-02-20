@@ -1,1 +1,9 @@
 remote_theme: halivert/halivert.github.io@main
+
+defaults:
+  -
+    scope:
+      path: ""
+    values:
+      layout: "repo"
+      has_instant_view: true

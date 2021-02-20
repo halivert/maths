@@ -1,3 +1,9 @@
+---
+title: Matemáticas
+description: >-
+  Repo de matemáticas
+---
+
 # Matemáticas
 
 En este repo, guardo algunas funciones para practicar matemáticas, recursividad,
