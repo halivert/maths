@@ -3,6 +3,8 @@ remote_theme: halivert/halivert.github.io@main
 title: "Matemáticas"
 
 defaults:
-  - values:
+  - scope:
+      path: ""
+    values:
       layout: "repo"
       has_instant_view: true
